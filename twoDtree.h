@@ -201,6 +201,12 @@ private:
    * @param lr lower right point of current node's rectangle.
    */
    Node * buildTree(stats & s,pair<int,int> ul, pair<int,int> lr, bool vert);
+   
+   /**
+   * helper recursive function for render
+   * recurses until reaches a leaf node then renders that node onto the image
+   */
+   void render(Node* node, PNG &img);
 
    /* =================== end of private PA3 functions ============== */
 };
