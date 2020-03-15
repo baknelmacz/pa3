@@ -9,7 +9,7 @@ stats::stats(PNG & im){
   sumsqGreen.resize(im.height());
   sumsqBlue.resize(im.height());
 
-  for (int y = 0; y < im.height(); y++){
+  for (unsigned int y = 0; y < im.height(); y++){
     sumRed[y].resize(im.width());
     sumGreen[y].resize(im.width());
     sumBlue[y].resize(im.width());
@@ -17,7 +17,7 @@ stats::stats(PNG & im){
     sumsqGreen[y].resize(im.width());
     sumsqBlue[y].resize(im.width());
 
-    for (int x = 0; x < im.width(); x++){
+    for (unsigned int x = 0; x < im.width(); x++){
       long redAbove = 0,greenAbove = 0,blueAbove = 0,redLeft = 0,greenLeft = 0,blueLeft = 0;
       long redSqAbove = 0,greenSqAbove = 0,blueSqAbove = 0,redSqLeft = 0,greenSqLeft = 0,blueSqLeft = 0;
       if (x != 0){
@@ -36,13 +36,12 @@ stats::stats(PNG & im){
         greenSqAbove = sumsqGreen[y-1][x];
         blueSqAbove = sumsqBlue[y-1][x];
       }
-      sumRed[y][x] = redAbove + redLeft + im.getPixel(x,y).r;
-      sumGreen[y][x] = greenAbove + greenLeft + im.getPixel(x,y).g;
-      sumBlue[y][x] =  blueAbove + blueLeft + im.getPixel(x,y).b;
-      sumsqRed[y][x] = redSqAbove + redSqLeft + im.getPixel(x,y).r * im.getPixel(x,y).r;
-      sumsqGreen[y][x] = greenSqAbove + greenSqLeft + im.getPixel(x,y).g * im.getPixel(x,y).g;
-      sumsqBlue[y][x] = blueSqAbove + blueSqLeft + im.getPixel(x,y).b * im.getPixel(x,y).b;
-      }
+      sumRed[y][x] = redAbove + redLeft + im.getPixel(x,y)->r;
+      sumGreen[y][x] = greenAbove + greenLeft + im.getPixel(x,y)->g;
+      sumBlue[y][x] =  blueAbove + blueLeft + im.getPixel(x,y)->b;
+      sumsqRed[y][x] = redSqAbove + redSqLeft + im.getPixel(x,y)->r * im.getPixel(x,y)->r;
+      sumsqGreen[y][x] = greenSqAbove + greenSqLeft + im.getPixel(x,y)->g * im.getPixel(x,y)->g;
+      sumsqBlue[y][x] = blueSqAbove + blueSqLeft + im.getPixel(x,y)->b * im.getPixel(x,y)->b;
     }
   }
 }
@@ -62,7 +61,7 @@ long stats::getSumSq(char channel, pair<int,int> ul, pair<int,int> lr){
 }
 
 long stats::rectArea(pair<int,int> ul, pair<int,int> lr){
-  return (lr.first-ul.first)*(lr.second-ul.second);
+  return (lr.first-ul.first+1)*(lr.second-ul.second+1);
 }
 
 // given a rectangle, compute its sum of squared deviations from mean, over all color channels.
