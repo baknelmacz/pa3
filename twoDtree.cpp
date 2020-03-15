@@ -36,21 +36,85 @@ twoDtree & twoDtree::operator=(const twoDtree & rhs){
 }
 
 twoDtree::twoDtree(PNG & imIn){ 
-
-// YOUR CODE HERE
-
+  height = imIn.height();
+  width = imIn.width();
+  stats s = stats(imIn);
+  root = buildTree(s,pair<int,int>(0,0),pair<int,int>(width-1,height-1),true);
 }
 
 twoDtree::Node * twoDtree::buildTree(stats & s, pair<int,int> ul, pair<int,int> lr, bool vert) {
+//base case, if ul and lr are in the same place, return NULL 
+  if (ul == lr) return NULL;
+//find two rectangles to split
+  int num_tests = (vert)? lr.first-ul.first : lr.second - ul.second; //if vert increment across width, if not increment across height
+  int x_incr = (vert)? 1:0;
+  int y_incr = (vert)? 0:1;
+//left rectangle will always have ul = ul of parent, right rectangle lr will always = lr of parent
+  pair<int,int> left_ul = pair<int,int>(ul.first,ul.second);
+  pair<int,int> left_lr;
+  pair<int,int> right_ul;
+  pair<int,int> right_lr = pair<int,int>(lr.first,lr.second);
+//we start with a left rectangle of width 1 if the split is vertical
+//and a left rectangle of height 1 if the split is horizontal
+  if (vert) {
+    left_lr = pair<int,int>(ul.first,lr.second);
+    right_ul = pair<int,int>(ul.first+1,ul.second);
+  }else{
+    left_lr = pair<int,int>(lr.first,ul.second);
+    right_ul = pair<int,int>(ul.first,ul.second+1);
+  }
+  long score;
+//these values hold the lr and ul values of the rectangles that had the lowest score
+  pair<int,int> min_leftlr = left_lr, min_rightul = right_ul;
+//each time through the loop calculate the score, increase the size of the left rectangle, decrease the size of the right rectangle
+//then if the score of the new rectangles is less, save the dimensions of them
+  for (int i = 0; i < num_tests; i++){
+    score = s.getScore(left_ul,left_lr);
+    left_lr.first += x_incr;
+    left_lr.second += y_incr;
+    if (score > s.getScore(left_ul,left_lr)) {
+      min_leftlr = left_lr;
+    }
 
-// YOUR CODE HERE!!
+    score = s.getScore(right_ul,right_lr);
+    right_ul.first -= x_incr;
+    right_ul.second -= y_incr;
+    if (score > s.getScore(right_ul,right_lr)) {
+      min_rightul = right_ul;
+    }
+  }
 
+//build subtree of left and right rectangle
+  Node* leftRect = buildTree(s,left_ul,min_leftlr,!vert);
+  Node* rightRect = buildTree(s,min_rightul,right_lr,!vert);
+// create node and point children at two found rectangles
+  Node* ret = new Node(ul,lr,s.getAvg(ul,lr));
+  ret->left = leftRect;
+  ret->right = rightRect;
+  return ret;
 }
 
 PNG twoDtree::render(){
+//initialize PNG and use recursive helper function to render the image
+  PNG img = PNG(height,width);
+  render(root,img);
+  return img;
+}
 
-// YOUR CODE HERE!!
-
+void twoDtree::render(Node* node, PNG &img){
+  if (node == NULL) return; //NULL case, dont do anything
+  if (node->left == NULL && node->right == NULL){ //if we've reached a leaf, render onto img
+    for (int y = node->upLeft.second; y <= node->lowRight.second; y++){
+      for (int x = node->upLeft.first; x <= node->lowRight.first; x++){
+        RGBAPixel *curr = img.getPixel(x,y);
+        *curr = node->avg;
+      }
+    }
+  } else { //if current node is not a leaf, recurse down children looking for leaves
+    render(node->left,img);
+    render(node->right,img);
+  }
+  return;
 }
 
 int twoDtree::idealPrune(int leaves){
