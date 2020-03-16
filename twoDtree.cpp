@@ -44,9 +44,13 @@ twoDtree::twoDtree(PNG & imIn){
 
 twoDtree::Node * twoDtree::buildTree(stats & s, pair<int,int> ul, pair<int,int> lr, bool vert) {
 //base case, if ul and lr are in the same place, return NULL 
-  if (ul == lr) return NULL;
+  if (ul == lr) return new Node(ul,lr,s.getAvg(ul,lr));
 //find two rectangles to split
   int num_tests = (vert)? lr.first-ul.first : lr.second - ul.second; //if vert increment across width, if not increment across height
+  if (num_tests < 1) { //case if splitting can no longer occur in current current direction
+    vert = !vert;
+    num_tests = (vert)? lr.first-ul.first : lr.second - ul.second; 
+  }
   int x_incr = (vert)? 1:0;
   int y_incr = (vert)? 0:1;
 //left rectangle will always have ul = ul of parent, right rectangle lr will always = lr of parent
@@ -65,22 +69,19 @@ twoDtree::Node * twoDtree::buildTree(stats & s, pair<int,int> ul, pair<int,int> 
   }
   long score;
 //these values hold the lr and ul values of the rectangles that had the lowest score
-  pair<int,int> min_leftlr = left_lr, min_rightul = right_ul;
+  pair<int,int> min_leftlr = pair<int,int>(left_lr.first,left_lr.second);
+  pair<int,int> min_rightul = pair<int,int>(right_ul.first,right_ul.second);
 //each time through the loop calculate the score, increase the size of the left rectangle, decrease the size of the right rectangle
 //then if the score of the new rectangles is less, save the dimensions of them
-  for (int i = 0; i < num_tests; i++){
-    score = s.getScore(left_ul,left_lr);
+  for (int i = 1; i < num_tests; i++){
+    score = s.getScore(left_ul,left_lr) + s.getScore(right_ul,right_lr);
     left_lr.first += x_incr;
     left_lr.second += y_incr;
-    if (score > s.getScore(left_ul,left_lr)) {
-      min_leftlr = left_lr;
-    }
-
-    score = s.getScore(right_ul,right_lr);
-    right_ul.first -= x_incr;
-    right_ul.second -= y_incr;
-    if (score > s.getScore(right_ul,right_lr)) {
-      min_rightul = right_ul;
+    right_ul.first += x_incr;
+    right_ul.second += y_incr;
+    if (score > s.getScore(left_ul,left_lr) + s.getScore(right_ul,right_lr)) {
+      min_leftlr = pair<int,int>(left_lr.first,left_lr.second);
+      min_rightul = pair<int,int>(right_ul.first,right_ul.second);
     }
   }
 
