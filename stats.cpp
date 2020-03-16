@@ -16,18 +16,12 @@ stats::stats(PNG & im){
     sumsqRed[y].resize(im.width());
     sumsqGreen[y].resize(im.width());
     sumsqBlue[y].resize(im.width());
+    long redLeft = 0, greenLeft = 0, blueLeft = 0, redSqLeft = 0, greenSqLeft = 0, blueSqLeft = 0;
 
     for (unsigned int x = 0; x < im.width(); x++){
-      long redAbove = 0,greenAbove = 0,blueAbove = 0,redLeft = 0,greenLeft = 0,blueLeft = 0;
-      long redSqAbove = 0,greenSqAbove = 0,blueSqAbove = 0,redSqLeft = 0,greenSqLeft = 0,blueSqLeft = 0;
-      if (x != 0){
-        redLeft = sumRed[y][x-1];
-        greenLeft = sumGreen[y][x-1];
-        blueLeft = sumBlue[y][x-1];
-        redSqLeft = sumsqRed[y][x-1];
-        greenSqLeft = sumsqGreen[y][x-1];
-        blueSqLeft = sumsqBlue[y][x-1];
-      }
+      long redAbove = 0,greenAbove = 0,blueAbove = 0;
+      long redSqAbove = 0,greenSqAbove = 0,blueSqAbove = 0;
+      
       if (y != 0){
         redAbove = sumRed[y-1][x];
         greenAbove = sumGreen[y-1][x];
@@ -36,27 +30,64 @@ stats::stats(PNG & im){
         greenSqAbove = sumsqGreen[y-1][x];
         blueSqAbove = sumsqBlue[y-1][x];
       }
-      sumRed[y][x] = redAbove + redLeft + im.getPixel(x,y)->r;
-      sumGreen[y][x] = greenAbove + greenLeft + im.getPixel(x,y)->g;
-      sumBlue[y][x] =  blueAbove + blueLeft + im.getPixel(x,y)->b;
-      sumsqRed[y][x] = redSqAbove + redSqLeft + im.getPixel(x,y)->r * im.getPixel(x,y)->r;
-      sumsqGreen[y][x] = greenSqAbove + greenSqLeft + im.getPixel(x,y)->g * im.getPixel(x,y)->g;
-      sumsqBlue[y][x] = blueSqAbove + blueSqLeft + im.getPixel(x,y)->b * im.getPixel(x,y)->b;
+	
+	redLeft += im.getPixel(x,y)->r;
+        greenLeft += im.getPixel(x,y)->g;
+        blueLeft += im.getPixel(x,y)->b;
+        redSqLeft += im.getPixel(x,y)->r * im.getPixel(x,y)->r;
+        greenSqLeft += im.getPixel(x,y)->g * im.getPixel(x,y)->g;
+        blueSqLeft += im.getPixel(x,y)->b * im.getPixel(x,y)->b;
+
+
+      sumRed[y][x] = redAbove + redLeft;
+      sumGreen[y][x] = greenAbove + greenLeft;
+      sumBlue[y][x] =  blueAbove + blueLeft;
+      sumsqRed[y][x] = redSqAbove + redSqLeft;
+      sumsqGreen[y][x] = greenSqAbove + greenSqLeft;
+      sumsqBlue[y][x] = blueSqAbove + blueSqLeft;
     }
   }
 }
 
 long stats::getSum(char channel, pair<int,int> ul, pair<int,int> lr){
-  if (channel == 'r') return sumRed[lr.second][lr.first] - sumRed[ul.second][ul.first];
-  if (channel == 'g') return sumGreen[lr.second][lr.first] - sumGreen[ul.second][ul.first];
-  if (channel == 'b') return sumBlue[lr.second][lr.first] - sumBlue[ul.second][ul.first];
+  if (ul.first < 0 || ul.second < 0 || lr.first < 0 || lr.second < 0) return 0;
+  if (channel == 'r') {
+    return (sumRed[lr.second][lr.first] - 
+	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
+	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
+  }  
+  if (channel == 'g') {
+    return (sumGreen[lr.second][lr.first] - 
+	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
+	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
+ }
+  if (channel == 'b') {
+    return (sumBlue[lr.second][lr.first] - 
+	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
+	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
+ }
   return -1;
 }
 
 long stats::getSumSq(char channel, pair<int,int> ul, pair<int,int> lr){
-  if (channel == 'r') return sumsqRed[lr.second][lr.first] - sumsqRed[ul.second][ul.first];
-  if (channel == 'g') return sumsqGreen[lr.second][lr.first] - sumsqGreen[ul.second][ul.first];
-  if (channel == 'b') return sumsqBlue[lr.second][lr.first] - sumsqBlue[ul.second][ul.first];
+  if (ul.first < 0 || ul.second < 0 || lr.first < 0 || lr.second < 0) return 0;
+  if (channel == 'r') {
+    return (sumsqRed[lr.second][lr.first] - 
+	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
+	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
+
+  }
+  if (channel == 'g') {
+    return (sumsqGreen[lr.second][lr.first] - 
+	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
+	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
+
+  }
+  if (channel == 'b') {
+    return (sumsqBlue[lr.second][lr.first] - 
+	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
+	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
+  }
   return -1;
 }
 
