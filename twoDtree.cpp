@@ -79,7 +79,7 @@ twoDtree::Node * twoDtree::buildTree(stats & s, pair<int,int> ul, pair<int,int> 
     left_lr.second += y_incr;
     right_ul.first += x_incr;
     right_ul.second += y_incr;
-    if (score > s.getScore(left_ul,left_lr) + s.getScore(right_ul,right_lr)) {
+    if (score >= s.getScore(left_ul,left_lr) + s.getScore(right_ul,right_lr)) {
       min_leftlr = pair<int,int>(left_lr.first,left_lr.second);
       min_rightul = pair<int,int>(right_ul.first,right_ul.second);
     }
@@ -131,22 +131,51 @@ int twoDtree::pruneSize(int tol){
 }
 
 void twoDtree::prune(int tol){
+  prune(tol,root->avg,root);
+}
 
-// YOUR CODE HERE!!
-
+bool twoDtree::prune(int tol,RGBAPixel avg, Node* node){
+  if (node == NULL) return true;
+  bool left = prune(tol,avg,node->left);
+  bool right = prune(tol,avg,node->right);
+  if (!left) {
+    if (node->left) prune(tol,node->left->avg,node->left);
+  }
+  if (!right) {
+    if (node->right) prune(tol,node->right->avg,node->right);
+  }
+  RGBAPixel nodeColour = node->avg;
+  long distance = (avg.r-nodeColour.r)*(avg.r-nodeColour.r)+(avg.g-nodeColour.g)*(avg.g-nodeColour.g)+(avg.b-nodeColour.b)*(avg.b-nodeColour.b);
+  if (left && right && (distance <= tol)){
+    clear(node->left);
+    node->left = NULL;
+    clear(node->right);
+    node->right = NULL;
+    return true;
+  } else return false;
 }
 
 void twoDtree::clear() {
+  clear(root);
+}
 
-// YOUR CODE HERE!!
-
+void twoDtree::clear(Node* node){
+  if (node == NULL) return;
+  if (node->left) clear(node->left);
+  if (node->right) clear(node->right);
+  delete node;
+  return;
 }
 
 void twoDtree::copy(const twoDtree & orig){
-
-// YOUR CODE HERE!!
-
+  height = orig.height;
+  width = orig.width;
+  copy(root,orig.root);
 }
-
-
-
+void twoDtree::copy(Node* &subroot, const Node * orig){
+  if (orig == NULL) return;
+  subroot = new Node(orig->upLeft,orig->lowRight,orig->avg);
+  copy(subroot->left,orig->left);
+  copy(subroot->right,orig->right);
+  return;
+}
