@@ -97,7 +97,7 @@ twoDtree::Node * twoDtree::buildTree(stats & s, pair<int,int> ul, pair<int,int> 
 
 PNG twoDtree::render(){
 //initialize PNG and use recursive helper function to render the image
-  PNG img = PNG(height,width);
+  PNG img = PNG(width,height);
   render(root,img);
   return img;
 }
