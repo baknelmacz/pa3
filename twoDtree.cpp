@@ -126,16 +126,17 @@ int twoDtree::idealPrune(int leaves){
   return idealPrune(leaves,guess,increment);
 }
 int twoDtree::idealPrune(int leaves, int guess, int increment){
-  int temp = pruneSize(guess+increment);
+  int temp = pruneSize(guess);
+  guess += increment;
   if (temp < leaves){
-    return idealPrune(leaves,guess+increment,increment);
+    return idealPrune(leaves,guess,increment);
   }
   else if (temp > leaves) {
-    return idealPrune(leaves,guess,increment/10);
+    return idealPrune(leaves,guess-increment,increment/10);
   }
   else if (temp == leaves){
-    if (increment == 1) return guess;
-    else return idealPrune(leaves,guess,increment/10);
+    if (increment == 1) return guess-increment;
+    else return idealPrune(leaves,guess-increment,increment/10);
   }
   return -1;
 }
