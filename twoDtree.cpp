@@ -121,9 +121,23 @@ void twoDtree::render(Node* node, PNG &img){
 }
 
 int twoDtree::idealPrune(int leaves){
-
-// YOUR CODE HERE!!
-
+  int guess = 0;
+  int increment = 1000;
+  return idealPrune(leaves,guess,increment);
+}
+int twoDtree::idealPrune(int leaves, int guess, int increment){
+  int temp = pruneSize(guess+increment);
+  if (temp < leaves){
+    return idealPrune(leaves,guess+increment,increment);
+  }
+  else if (temp > leaves) {
+    return idealPrune(leaves,guess,increment/10);
+  }
+  else if (temp == leaves){
+    if (increment == 1) return guess;
+    else return idealPrune(leaves,guess,increment/10);
+  }
+  return -1;
 }
 
 int twoDtree::pruneSize(int tol){

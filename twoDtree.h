@@ -230,6 +230,9 @@ private:
   void copy(Node* &subroot, const Node * orig);
 //recursive helper for prunesize
   int pruneSize(int tol,Node* node);
+//recursive helper for idealPrune
+  int idealPrune(int leaves, int guess, int increment);
+
 
    /* =================== end of private PA3 functions ============== */
 };
