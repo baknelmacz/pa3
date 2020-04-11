@@ -10,7 +10,6 @@ using namespace std;
 using namespace cs221util;
 
 class stats {
-
 private:
 	vector< vector< long >> sumRed;
 	vector< vector< long >> sumGreen;

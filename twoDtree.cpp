@@ -43,7 +43,7 @@ twoDtree::twoDtree(PNG & imIn){
 }
 
 twoDtree::Node * twoDtree::buildTree(stats & s, pair<int,int> ul, pair<int,int> lr, bool vert) {
-//base case, if ul and lr are in the same place, return NULL 
+//base case, if ul and lr are in the same place, return new node, this is one pixel 
   if (ul == lr) return new Node(ul,lr,s.getAvg(ul,lr));
 //find two rectangles to split
   int num_tests = (vert)? lr.first-ul.first : lr.second - ul.second; //if vert increment across width, if not increment across height
@@ -73,13 +73,15 @@ twoDtree::Node * twoDtree::buildTree(stats & s, pair<int,int> ul, pair<int,int> 
   pair<int,int> min_rightul = pair<int,int>(right_ul.first,right_ul.second);
 //each time through the loop calculate the score, increase the size of the left rectangle, decrease the size of the right rectangle
 //then if the score of the new rectangles is less, save the dimensions of them
+  score = s.getScore(left_ul,left_lr) + s.getScore(right_ul,right_lr);
   for (int i = 1; i < num_tests; i++){
-    score = s.getScore(left_ul,left_lr) + s.getScore(right_ul,right_lr);
     left_lr.first += x_incr;
     left_lr.second += y_incr;
     right_ul.first += x_incr;
     right_ul.second += y_incr;
-    if (score >= s.getScore(left_ul,left_lr) + s.getScore(right_ul,right_lr)) {
+    int newScore = s.getScore(left_ul,left_lr) + s.getScore(right_ul,right_lr);
+    if (newScore <= score) {
+      score = newScore;
       min_leftlr = pair<int,int>(left_lr.first,left_lr.second);
       min_rightul = pair<int,int>(right_ul.first,right_ul.second);
     }
@@ -111,7 +113,7 @@ void twoDtree::render(Node* node, PNG &img){
         *curr = node->avg;
       }
     }
-  } else { //if current node is not a leaf, recurse down children looking for leaves
+  } else { //if current node is not a leaf, recurse down children looking for leaves 
     render(node->left,img);
     render(node->right,img);
   }
@@ -125,35 +127,45 @@ int twoDtree::idealPrune(int leaves){
 }
 
 int twoDtree::pruneSize(int tol){
-    
-// YOUR CODE HERE!!
-
+  return pruneSize(tol,root);    
+}
+int twoDtree::pruneSize(int tol,Node* node){
+  if (node == NULL) return 0;
+  if (vibeCheck(tol,node->avg,node->left) && vibeCheck(tol,node->avg,node->right)){
+    return 1;
+  } else {
+    return pruneSize(tol,node->left) + pruneSize(tol,node->right);
+  }
 }
 
 void twoDtree::prune(int tol){
-  prune(tol,root->avg,root);
+  prune(tol,root);
 }
 
-bool twoDtree::prune(int tol,RGBAPixel avg, Node* node){
-  if (node == NULL) return true;
-  bool left = prune(tol,avg,node->left);
-  bool right = prune(tol,avg,node->right);
-  if (!left) {
-    if (node->left) prune(tol,node->left->avg,node->left);
-  }
-  if (!right) {
-    if (node->right) prune(tol,node->right->avg,node->right);
-  }
-  RGBAPixel nodeColour = node->avg;
-  long distance = (avg.r-nodeColour.r)*(avg.r-nodeColour.r)+(avg.g-nodeColour.g)*(avg.g-nodeColour.g)+(avg.b-nodeColour.b)*(avg.b-nodeColour.b);
-  if (left && right && (distance <= tol)){
+void twoDtree::prune(int tol, Node* node){
+  if (node == NULL) return;
+  if (vibeCheck(tol,node->avg,node->left) && vibeCheck(tol,node->avg,node->right)){
     clear(node->left);
     node->left = NULL;
     clear(node->right);
     node->right = NULL;
-    return true;
-  } else return false;
+  } else {
+    prune(tol,node->left);
+    prune(tol,node->right);
+  }
 }
+
+bool twoDtree::vibeCheck(int tol,RGBAPixel avg,Node* node){
+  if (node == NULL) return true;
+  if (node->left == NULL && node->right == NULL){ 
+    long distance =((avg.r-node->avg.r)*(avg.r-node->avg.r))+((avg.g-node->avg.g)*(avg.g-node->avg.g))+((avg.b-node->avg.b)*(avg.b-node->avg.b));
+    if (distance < tol) return true;
+    else return false;
+  } else {
+    return vibeCheck(tol,avg,node->left) && vibeCheck(tol,avg,node->right);
+  }
+}
+
 
 void twoDtree::clear() {
   clear(root);

@@ -207,6 +207,29 @@ private:
    * recurses until reaches a leaf node then renders that node onto the image
    */
    void render(Node* node, PNG &img);
+  /**
+  * recursive helper function for prune
+  *
+  */
+  void prune(int tol, Node* node);
+  /**
+  *helper function
+  *returns true if node and its children are all within tol of avg
+  */
+  bool vibeCheck(int tol,RGBAPixel avg,Node* node);
+
+  /**
+  * rescursive helper function for clear
+  *
+  */
+  void clear(Node* node);
+  /**
+  * rescursive helper function for copy
+  *
+  */
+  void copy(Node* &subroot, const Node * orig);
+//recursive helper for prunesize
+  int pruneSize(int tol,Node* node);
 
    /* =================== end of private PA3 functions ============== */
 };

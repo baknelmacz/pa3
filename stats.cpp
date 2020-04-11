@@ -66,29 +66,29 @@ long stats::getSum(char channel, pair<int,int> ul, pair<int,int> lr){
 	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
 	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
  }
-  return -1;
+  return 0;
 }
 
 long stats::getSumSq(char channel, pair<int,int> ul, pair<int,int> lr){
   if (ul.first < 0 || ul.second < 0 || lr.first < 0 || lr.second < 0) return 0;
   if (channel == 'r') {
     return (sumsqRed[lr.second][lr.first] - 
-	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
-	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
+	   getSumSq(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
+	   getSumSq(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
 
   }
   if (channel == 'g') {
     return (sumsqGreen[lr.second][lr.first] - 
-	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
-	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
+	   getSumSq(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
+	   getSumSq(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
 
   }
   if (channel == 'b') {
     return (sumsqBlue[lr.second][lr.first] - 
-	   getSum(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
-	   getSum(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
+	   getSumSq(channel,pair<int,int>(0,0),pair<int,int>(ul.first-1,lr.second)) - 
+	   getSumSq(channel,pair<int,int>(ul.first,0),pair<int,int>(lr.first,ul.second-1)));
   }
-  return -1;
+  return 0;
 }
 
 long stats::rectArea(pair<int,int> ul, pair<int,int> lr){
@@ -107,5 +107,5 @@ RGBAPixel stats::getAvg(pair<int,int> ul, pair<int,int> lr){
   long red = getSum('r',ul,lr)/rectArea(ul,lr);
   long green = getSum('g',ul,lr)/rectArea(ul,lr);
   long blue = getSum('b',ul,lr)/rectArea(ul,lr);
-  return RGBAPixel((int)red,(int)green,(int)blue);
+  return RGBAPixel(red,green,blue);
 }
